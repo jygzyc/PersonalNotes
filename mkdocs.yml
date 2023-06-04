@@ -1,0 +1,39 @@
+site_name: Ecool Notes
+site_author: Ecool
+repo_url: https://github.com/jygzyc/personal_notes
+
+nav:
+  - Home: index.md
+  - Android:
+    - Android/内核编译与KernelSU集成.md
+  - Tools:
+    - Ghidra:
+      - Tools/Ghidra/AndroidNative技巧.md
+
+theme: 
+  name: material
+  features:
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
+    - navigation.footer
+    - navigation.tracking
+    - navigation.top
+    - toc.follow
+
+# admonition开启警告之类的提示框语法
+# codehilite代码高亮
+markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tabbed
+  - admonition
+  - footnotes
+  - toc:
+      permalink: true
+
+plugins: 
+  - search
+
