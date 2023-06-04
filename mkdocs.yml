@@ -1,6 +1,6 @@
 site_name: Ecool Notes
 site_author: Ecool
-repo_url: https://github.com/jygzyc/personal_notes
+repo_url: https://github.com/jygzyc/PersonalNotes
 
 nav:
   - Home: index.md
