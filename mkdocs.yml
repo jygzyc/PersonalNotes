@@ -6,9 +6,10 @@ nav:
   - Home: index.md
   - Android:
     - Android/内核编译与KernelSU集成.md
+    - Android/Android逆向中的字符串加密和反混淆.md
   - Tools:
-    - Ghidra:
-      - Tools/Ghidra/AndroidNative技巧.md
+    - Frida:
+      - Frida/Frida编译与patch.md
 
 theme: 
   name: material
