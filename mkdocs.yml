@@ -9,7 +9,7 @@ nav:
     - Android/Android逆向中的字符串加密和反混淆.md
   - Tools:
     - Frida:
-      - Frida/Frida编译与patch.md
+      - Tools/Frida/Frida编译与patch.md
 
 theme: 
   name: material
