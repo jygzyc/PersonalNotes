@@ -341,7 +341,7 @@ index 00000000..172447e6
 + 
 +    for symbol in binary.symbols:  # 修改符号名
 +        if symbol.name == "frida_agent_main":
-+            symbol.name = "main"
++            symbol.name = "ecool_main"
 + 
 +        if "frida" in symbol.name:
 +            symbol.name = symbol.name.replace("frida", random_name)
@@ -445,6 +445,8 @@ index 0ed2edeb..5ab4c006 100644
 ```
 
 编译的过程就和上面的一样，这里就不赘述了。
+
+
 
 ## 参考资料
 
