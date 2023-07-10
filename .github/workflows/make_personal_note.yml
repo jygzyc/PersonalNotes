@@ -16,4 +16,6 @@ jobs:
           python-version: 3.9
       - run: pip install mkdocs-material
       - run: pip install mkdocs-add-number-plugin
+      - run: pip install mkdocs-glightbox
+      - run: pip install pymdown-extensions
       - run: mkdocs gh-deploy --force
