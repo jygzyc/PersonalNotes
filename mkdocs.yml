@@ -7,6 +7,7 @@ nav:
   - Android:
     - Android/内核编译与KernelSU集成.md
     - Android/Android逆向中的字符串加密和反混淆.md
+    - Android/Android定制化ART与逆向.md
   - Tools:
     - Frida:
       - Tools/Frida/Frida编译与patch.md
@@ -32,9 +33,13 @@ markdown_extensions:
   - pymdownx.tabbed
   - admonition
   - footnotes
+  # Images
+  - attr_list
+  - md_in_html
   - toc:
       permalink: true
 
 plugins: 
   - search
+  - glightbox
 
