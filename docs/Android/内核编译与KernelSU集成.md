@@ -34,11 +34,17 @@
 
 ## KernelSU
 
-这里我们参考官方的教程，使用 `kprobe` 集成
+这里我们参考官方的教程，链接为[如何为非 GKI 内核集成 KernelSU](https://kernelsu.org/zh_CN/guide/how-to-integrate-for-non-gki.html)，并使用 `kprobe` 集成
 
 ### Kprobe配置
 
-先进入到内核源码目录下，在根目录执行如下命令
+先进入到内核源码目录下，在根目录新建分支，这里命名为`kernelsu`
+
+```bash
+git checkout -b kernelsu # 此处新建一个分支，方便之后进行同步和更改
+```
+
+建立完成后执行如下命令
 
 ```bash
 curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
@@ -69,21 +75,137 @@ CONFIG_KPROBE_EVENTS=y
 
 ![image-20230604053323694](images/%E5%86%85%E6%A0%B8%E7%BC%96%E8%AF%91%E4%B8%8EKernelSU%E9%9B%86%E6%88%90/image-20230604053323694.png)
 
+```c
+// kernelsu add
+extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr, 
+			void *argv,
+            void *envp, 
+			int *flags);
+// kernelsu end
+
+/*
+ * sys_execve() executes a new program.
+ */
+static int do_execveat_common(int fd, struct filename *filename,
+			      struct user_arg_ptr argv,
+			      struct user_arg_ptr envp,
+			      int flags)
+{
+	char *pathbuf = NULL;
+	struct linux_binprm *bprm;
+	struct file *file;
+	struct files_struct *displaced;
+	int retval;
+
+	// kernelsu add
+	ksu_handle_execveat(&fd, &filename, &argv, &envp, &flags);
+	// kernelsu end
+
+	if (IS_ERR(filename))
+		return PTR_ERR(filename);
+...
+```
+
 - 修改`fs/open.c`，找到faccessat的系统调用定义并修改
 
 ![image-20230604050614525](images/%E5%86%85%E6%A0%B8%E7%BC%96%E8%AF%91%E4%B8%8EKernelSU%E9%9B%86%E6%88%90/image-20230604050614525.png)
+
+```c
+// kernelsu add
+extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user, 
+			int *mode,
+            int *flags);
+// kernelsu end
+
+/*
+ * access() needs to use the real uid/gid, not the effective uid/gid.
+ * We do this by temporarily clearing all FS-related capabilities and
+ * switching the fsuid/fsgid around to the real ones.
+ */
+SYSCALL_DEFINE3(faccessat, int, dfd, const char __user *, filename, int, mode)
+{
+	const struct cred *old_cred;
+	struct cred *override_cred;
+	struct path path;
+	struct inode *inode;
+	struct vfsmount *mnt;
+	int res;
+	unsigned int lookup_flags = LOOKUP_FOLLOW;
+
+	// kernelsu add
+	ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
+	// kernelsu end
+
+	if (mode & ~S_IRWXO)
+...
+```
 
 - 修改`fs/read_write.c`中的vfs_read
 
 ![image-20230604043617929](images/%E5%86%85%E6%A0%B8%E7%BC%96%E8%AF%91%E4%B8%8EKernelSU%E9%9B%86%E6%88%90/image-20230604043617929.png)
 
-- 修改`fs/stat.c`中的vfs_fstatat
+```c
+// kernelsu add
+extern int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr,
+            size_t *count_ptr, loff_t **pos);
+// kernelsu end
+
+ssize_t vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos)
+{
+	ssize_t ret;
+
+	// kernelsu add
+    ksu_handle_vfs_read(&file, &buf, &count, &pos);
+    // kernelsu end
+	if (!(file->f_mode & FMODE_READ))
+...
+```
+
+- 修改`fs/stat.c`中的vfs_fstatat（Pixel 3中适配的旧版本内核没有`vfs_statx`函数）
 
 ![image-20230604044525839](images/%E5%86%85%E6%A0%B8%E7%BC%96%E8%AF%91%E4%B8%8EKernelSU%E9%9B%86%E6%88%90/image-20230604044525839.png)
+
+```c
+// kernelsu add
+extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);
+// kernelsu end
+
+int vfs_fstatat(int dfd, const char __user *filename, struct kstat *stat,
+		int flag)
+{
+	struct path path;
+	int error = -EINVAL;
+	unsigned int lookup_flags = 0;
+
+	// kernelsu add
+	ksu_handle_stat(&dfd, &filename, &flag);
+	// kernelsu end
+...
+```
 
 - 打开 KernelSU内置的安全模式，修改`drivers/input/input.c`中的`input_handle_event` 方法
 
 ![image-20230604044930297](images/%E5%86%85%E6%A0%B8%E7%BC%96%E8%AF%91%E4%B8%8EKernelSU%E9%9B%86%E6%88%90/image-20230604044930297.png)
+
+```c
+// kernelsu add
+extern int ksu_handle_input_handle_event(unsigned int *type, 
+					unsigned int *code, 
+					int *value);
+// kernelsu end
+
+static void input_handle_event(struct input_dev *dev,
+			       unsigned int type, unsigned int code, int value)
+{
+	int disposition = input_get_disposition(dev, type, code, &value);
+
+	// kernelsu add
+	ksu_handle_input_handle_event(&type, &code, &value);
+	// kernelsu end
+	if (disposition != INPUT_IGNORE_EVENT && type != EV_SYN)
+		add_input_randomness(type, code, value);
+...
+```
 
 编译的过程就和上面的步骤是一样的
 
@@ -94,6 +216,28 @@ CONFIG_KPROBE_EVENTS=y
 ![image-20230604053409933](images/%E5%86%85%E6%A0%B8%E7%BC%96%E8%AF%91%E4%B8%8EKernelSU%E9%9B%86%E6%88%90/image-20230604053409933.png)
 
 接下来就可以快乐玩耍了！
+
+## 内核同步
+
+在上述内核修改结束后，可以将定制的内核文件同步到自己的github上，方便以后的更新，修改和编译
+
+```bash
+$ git remote add kernelsu git@github.com:jygzyc/kernel_google_bluecross_KernelSU.git # 添加远程分支
+$ git add .
+$ git commit -m "KernelSU Adaptation"
+$ git push -u kernelsu kernelsu:thirteen-plus # 首次将kernelsu分支推到远程kernelsu仓库的thirteen-plus分支
+```
+
+之后如果内核代码更新，那么就需要合并处理
+
+```bash
+$ git fetch pixel-devices thirteen-plus # 从远程仓库pixel-devices拉取thirteen-plus的代码
+
+$ git checkout kernelsu  # 切换到本地分支
+$ git merge # 将远程分支合并到本地分支
+
+$ git push kernelsu kernelsu:thirteen-plus # 将kernelsu分支推到远程kernelsu仓库的thirteen-plus分支
+```
 
 ## 参考文献
 
