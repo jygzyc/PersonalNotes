@@ -1,0 +1,892 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="Ecool">
+      
+      
+      
+        <link rel="prev" href="../%E5%86%85%E6%A0%B8%E7%BC%96%E8%AF%91%E4%B8%8EKernelSU%E9%9B%86%E6%88%90/">
+      
+      
+        <link rel="next" href="../../Tools/Frida/Frida%E7%BC%96%E8%AF%91%E4%B8%8Epatch/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+    
+    
+      
+        <title>Android逆向中的字符串加密和反混淆 - Ecool Notes</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"/><style>
+        html.glightbox-open { overflow: initial; height: 100%; }
+        .gslide-title { margin-top: 0px; user-select: text; }
+        .gslide-desc { color: #666; user-select: text; }
+        .gslide-image img { background: white; }
+        
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color);}
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color);}
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color);}
+            </style> <script src="../../assets/javascripts/glightbox.min.js"></script></head>
+  
+  
+    <body dir="ltr">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#android" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Ecool Notes" class="md-header__button md-logo" aria-label="Ecool Notes" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ecool Notes
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Android逆向中的字符串加密和反混淆
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jygzyc/PersonalNotes" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Ecool Notes" class="md-nav__button md-logo" aria-label="Ecool Notes" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Ecool Notes
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jygzyc/PersonalNotes" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Android
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Android
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../%E5%86%85%E6%A0%B8%E7%BC%96%E8%AF%91%E4%B8%8EKernelSU%E9%9B%86%E6%88%90/" class="md-nav__link">
+        内核编译与KernelSU集成
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Android逆向中的字符串加密和反混淆
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Android逆向中的字符串加密和反混淆
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    字符串加密概述
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dex" class="md-nav__link">
+    案例一：某dex
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#demo-apk" class="md-nav__link">
+    案例二：某Demo APK
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    总结
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    参考资料
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          Tools
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Tools
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+          Frida
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          Frida
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Tools/Frida/Frida%E7%BC%96%E8%AF%91%E4%B8%8Epatch/" class="md-nav__link">
+        Frida编译与patch
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    字符串加密概述
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dex" class="md-nav__link">
+    案例一：某dex
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#demo-apk" class="md-nav__link">
+    案例二：某Demo APK
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    总结
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    参考资料
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/jygzyc/PersonalNotes/edit/master/docs/Android/Android逆向中的字符串加密和反混淆.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/jygzyc/PersonalNotes/raw/master/docs/Android/Android逆向中的字符串加密和反混淆.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg>
+    </a>
+  
+
+
+<h1 id="android">Android逆向中的字符串加密和反混淆<a class="headerlink" href="#android" title="Permanent link">&para;</a></h1>
+<h2 id="_1">字符串加密概述<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>目前，主流的App上都有了字符串的加密和混淆，这对于逆向和安全检测来说，无疑是加大了难度；同时，对于恶意应用来说，也方便了他们隐藏真实的意图。</p>
+<p>以某网站上的著名项目<code>StringFog</code>为例，这是一款自动对dex/aar/jar文件中的字符串进行加密Android插件工具，其工作如下所示</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/flow-1686952453515-3.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="img" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/flow-1686952453515-3.png" /></a></p>
+<p><code>StringFog</code>实现的原理实际上非常简单，就是在字节码层面进行替换，但是却能给逆向分析增加较大的时间成本，并且，除了<code>StringFog</code>，市面上也存在很多自定义加密字符串的方案，这类方案往往和混淆结合在一起，就如同逆向时的鸡肋一般，让安全研究人员食之无味，弃之可惜。</p>
+<h2 id="dex">案例一：某dex<a class="headerlink" href="#dex" title="Permanent link">&para;</a></h2>
+<p>通过<code>jadx</code>加载某dex文件时，会发现文件中存在很多的加密字符串，这样的加密很影响分析的效率，那么我们怎么去除它呢？在最新版本的<code>jadx</code>中，开发者引入了一个全新的功能——<code>jadx-script</code>。通过<code>jadx-script</code>，我们能够在<code>jadx</code>中执行kotlin script，而相关的例子，也放在<code>jadx-plugins/jadx-script/examples/scripts</code>中，下面会介绍到。</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617054424136.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617054424136" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617054424136.png" /></a></p>
+<p>跟踪这个解密的函数，能看到解密的逻辑并不复杂，完全能够直接复现，那么我们期望的效果，肯定是在静态分析时直接看到解密后的结果，下面我们就来看看怎么达到这个效果。事实上，我们可以编写一个算法还原的脚本并交给最新的<code>jadx</code>去执行</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617054541259.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617054541259" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617054541259.png" /></a></p>
+<div class="highlight"><pre><span></span><code><span class="cm">/**</span>
+<span class="cm"> * Replace method call with calculated result.</span>
+<span class="cm"> * Useful for custom string deobfuscation.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Example for sample from issue https://github.com/skylot/jadx/issues/1251</span>
+<span class="cm"> */</span>
+
+<span class="k">import</span><span class="w"> </span><span class="nn">jadx.core.dex.instructions.ConstStringNode</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">jadx.core.dex.instructions.InvokeNode</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">jadx.core.dex.instructions.args.InsnArg</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">jadx.core.dex.instructions.args.InsnWrapArg</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">jadx.core.dex.instructions.args.RegisterArg</span>
+
+
+<span class="kd">val</span><span class="w"> </span><span class="nv">jadx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getJadxInstance</span><span class="p">()</span>
+
+<span class="kd">val</span><span class="w"> </span><span class="nv">mthSignature</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com.xshield.aa.iIiIiiiiII(Ljava/lang/String;)Ljava/lang/String;&quot;</span>
+
+<span class="n">jadx</span><span class="p">.</span><span class="na">replace</span><span class="p">.</span><span class="na">insns</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">mth</span><span class="p">,</span><span class="w"> </span><span class="n">insn</span><span class="w"> </span><span class="o">-&gt;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">insn</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">InvokeNode</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">insn</span><span class="p">.</span><span class="na">callMth</span><span class="p">.</span><span class="na">rawFullId</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">mthSignature</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">val</span><span class="w"> </span><span class="nv">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getConstStr</span><span class="p">(</span><span class="n">insn</span><span class="p">.</span><span class="na">getArg</span><span class="p">(</span><span class="m">0</span><span class="p">))</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">str</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kd">val</span><span class="w"> </span><span class="nv">resultStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">decode</span><span class="p">(</span><span class="n">str</span><span class="p">)</span>
+<span class="w">            </span><span class="n">log</span><span class="p">.</span><span class="na">info</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;Decode &#39;</span><span class="si">$</span><span class="n">str</span><span class="s">&#39; to &#39;</span><span class="si">$</span><span class="n">resultStr</span><span class="s">&#39; in </span><span class="si">$</span><span class="n">mth</span><span class="s">&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">return</span><span class="nd">@insns</span><span class="w"> </span><span class="n">ConstStringNode</span><span class="p">(</span><span class="n">resultStr</span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="kc">null</span>
+<span class="p">}</span>
+
+<span class="kd">fun</span><span class="w"> </span><span class="nf">getConstStr</span><span class="p">(</span><span class="n">arg</span><span class="p">:</span><span class="w"> </span><span class="n">InsnArg</span><span class="p">):</span><span class="w"> </span><span class="kt">String?</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">insn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">when</span><span class="w"> </span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">is</span><span class="w"> </span><span class="n">InsnWrapArg</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">arg</span><span class="p">.</span><span class="na">wrapInsn</span>
+<span class="w">        </span><span class="k">is</span><span class="w"> </span><span class="n">RegisterArg</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">arg</span><span class="p">.</span><span class="na">assignInsn</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">insn</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">ConstStringNode</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">insn</span><span class="p">.</span><span class="na">string</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">null</span>
+<span class="p">}</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Decompiled method, automatically converted to Kotlin by IntelliJ Idea</span>
+<span class="cm"> */</span>
+<span class="kd">fun</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="n">str</span><span class="p">:</span><span class="w"> </span><span class="kt">String</span><span class="p">):</span><span class="w"> </span><span class="kt">String</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">str</span><span class="p">.</span><span class="na">length</span>
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">cArr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CharArray</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+<span class="w">    </span><span class="kd">var</span><span class="w"> </span><span class="nv">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">length</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">val</span><span class="w"> </span><span class="nv">i2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
+<span class="w">        </span><span class="n">cArr</span><span class="o">[</span><span class="n">i</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">str</span><span class="o">[</span><span class="n">i</span><span class="o">]</span><span class="p">.</span><span class="na">code</span><span class="w"> </span><span class="n">xor</span><span class="w"> </span><span class="sc">&#39;z&#39;</span><span class="p">.</span><span class="na">code</span><span class="p">).</span><span class="na">toChar</span><span class="p">()</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i2</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">break</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i2</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span>
+<span class="w">        </span><span class="n">cArr</span><span class="o">[</span><span class="n">i2</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">str</span><span class="o">[</span><span class="n">i2</span><span class="o">]</span><span class="p">.</span><span class="na">code</span><span class="w"> </span><span class="n">xor</span><span class="w"> </span><span class="err">&#39;\</span><span class="n">u000c</span><span class="err">&#39;</span><span class="p">.</span><span class="na">code</span><span class="p">).</span><span class="na">toChar</span><span class="p">()</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kt">String</span><span class="p">(</span><span class="n">cArr</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>上面的代码中，已经复现了解密的算法，接下来就是加载脚本了，在GUI中选择<code>replace_method_call.jadx.kts</code>，打开</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617054940851.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617054940851" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617054940851.png" /></a></p>
+<p>执行脚本，会遍历每一个方法节点，当签名相符时，会替换为解密后的结果</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617055238398.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617055238398" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617055238398.png" /></a></p>
+<p>这样的话，我们就可以继续正常逆向分析了</p>
+<h2 id="demo-apk">案例二：某Demo APK<a class="headerlink" href="#demo-apk" title="Permanent link">&para;</a></h2>
+<p>通过上面的案例，我们发现可以通过逆向的手段还原算法，但是如果碰到不能够还原的加密方法，是不是就无法解密了呢？其实不然，因为我们还有<code>Frida</code>或者<code>unidbg</code>，这两者在函数的主动调用上都是一把好手，具体的对比如下表所示</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Java层函数调用</th>
+<th>Native层函数调用</th>
+<th>稳定性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frida</td>
+<td>可以</td>
+<td>可以</td>
+<td>不稳定</td>
+</tr>
+<tr>
+<td>unidbg</td>
+<td>不可以</td>
+<td>可以</td>
+<td>稳定</td>
+</tr>
+</tbody>
+</table>
+<p>我们可以根据各自的特性选择主动调用的工具，这里先看一个<code>Demo</code>案例，以<code>androidx.core.utils.CommenUtils$Companion.a</code>函数为例</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617044853265.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617044853265" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617044853265.png" /></a></p>
+<p>通过上图，我们能明显看到关键字符串均采用了加密，那么看一下加密函数<code>C3632qz.b</code>的实现</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617045025251.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617045025251" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617045025251.png" /></a></p>
+<p>发现这里实际上是Base64的解密，当然，我们可以在脚本中实现Base64的解密算法，不过这里也可以采用另一种方式解决，那就是直接hook <code>C3632qz.b</code>函数，进而主动调用返回结果，具体怎么操作呢？上代码</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// That is the path relative to the jadx/bin execution directory, or it can be changed to an absolute path.</span>
+<span class="nd">@file</span><span class="p">:</span><span class="n">DependsOn</span><span class="p">(</span><span class="s">&quot;../external_library/okhttp-4.11.0.jar&quot;</span><span class="p">)</span>
+<span class="nd">@file</span><span class="p">:</span><span class="n">DependsOn</span><span class="p">(</span><span class="s">&quot;../external_library/okio-jvm-3.2.0.jar&quot;</span><span class="p">)</span>
+<span class="nd">@file</span><span class="p">:</span><span class="n">DependsOn</span><span class="p">(</span><span class="s">&quot;../external_library/okio-3.2.0.jar&quot;</span><span class="p">)</span>
+
+<span class="k">import</span><span class="w"> </span><span class="nn">okhttp3.MediaType.Companion.toMediaType</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">okhttp3.OkHttpClient</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">okhttp3.Request</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">okhttp3.RequestBody.Companion.toRequestBody</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">okhttp3.Response</span>
+
+<span class="k">import</span><span class="w"> </span><span class="nn">jadx.core.dex.instructions.ConstStringNode</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">jadx.core.dex.instructions.InvokeNode</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">jadx.core.dex.instructions.args.InsnArg</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">jadx.core.dex.instructions.args.InsnWrapArg</span>
+<span class="k">import</span><span class="w"> </span><span class="nn">jadx.core.dex.instructions.args.RegisterArg</span>
+
+<span class="kd">val</span><span class="w"> </span><span class="nv">jadx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getJadxInstance</span><span class="p">()</span>
+
+<span class="kd">val</span><span class="w"> </span><span class="nv">mthSignature_qzb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;kotlinx.android.extensionss.qz.b(Ljava/lang/String;)Ljava/lang/String;&quot;</span>
+
+<span class="n">jadx</span><span class="p">.</span><span class="na">replace</span><span class="p">.</span><span class="na">insns</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">mth</span><span class="p">,</span><span class="w"> </span><span class="n">insn</span><span class="w"> </span><span class="o">-&gt;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">insn</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">InvokeNode</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">insn</span><span class="p">.</span><span class="na">callMth</span><span class="p">.</span><span class="na">rawFullId</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">mthSignature_qzb</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">val</span><span class="w"> </span><span class="nv">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getConstStr</span><span class="p">(</span><span class="n">insn</span><span class="p">.</span><span class="na">getArg</span><span class="p">(</span><span class="m">0</span><span class="p">))</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">str</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kd">val</span><span class="w"> </span><span class="nv">resultStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">decrypt</span><span class="p">(</span><span class="n">mthSignature_qzb</span><span class="p">,</span><span class="w"> </span><span class="n">str</span><span class="p">)</span>
+<span class="w">            </span><span class="n">log</span><span class="p">.</span><span class="na">info</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s">&quot;Decrypt &#39;</span><span class="si">$</span><span class="n">str</span><span class="s">&#39; to &#39;</span><span class="si">$</span><span class="n">resultStr</span><span class="s">&#39; in </span><span class="si">$</span><span class="n">mth</span><span class="s">&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">return</span><span class="nd">@insns</span><span class="w"> </span><span class="n">ConstStringNode</span><span class="p">(</span><span class="n">resultStr</span><span class="p">)</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="kc">null</span>
+<span class="p">}</span>
+<span class="kd">fun</span><span class="w"> </span><span class="nf">getConstStr</span><span class="p">(</span><span class="n">arg</span><span class="p">:</span><span class="w"> </span><span class="n">InsnArg</span><span class="p">):</span><span class="w"> </span><span class="kt">String?</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">insn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">when</span><span class="w"> </span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">is</span><span class="w"> </span><span class="n">InsnWrapArg</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">arg</span><span class="p">.</span><span class="na">wrapInsn</span>
+<span class="w">        </span><span class="k">is</span><span class="w"> </span><span class="n">RegisterArg</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">arg</span><span class="p">.</span><span class="na">assignInsn</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">insn</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">ConstStringNode</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">insn</span><span class="p">.</span><span class="na">string</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">null</span>
+<span class="p">}</span>
+<span class="c1">// rpc 解密函数</span>
+<span class="kd">fun</span><span class="w"> </span><span class="nf">decrypt</span><span class="p">(</span><span class="n">mthSignature</span><span class="p">:</span><span class="w"> </span><span class="kt">String</span><span class="p">,</span><span class="w"> </span><span class="n">param</span><span class="p">:</span><span class="w"> </span><span class="kt">String</span><span class="p">):</span><span class="w"> </span><span class="kt">String?</span><span class="p">{</span>
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OkHttpClient</span><span class="p">()</span>
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        {</span>
+<span class="s">            &quot;method&quot;: &quot;</span><span class="si">${</span><span class="n">mthSignature</span><span class="si">}</span><span class="s">&quot;,</span>
+<span class="s">            &quot;param&quot;: &quot;</span><span class="si">${</span><span class="n">param</span><span class="si">}</span><span class="s">&quot;</span>
+<span class="s">        }</span>
+<span class="s">    &quot;&quot;&quot;</span><span class="p">.</span><span class="na">trimIndent</span><span class="p">()</span>
+
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">requestBody</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="p">.</span><span class="na">toRequestBody</span><span class="p">(</span><span class="s">&quot;application/json; charset=utf-8&quot;</span><span class="p">.</span><span class="na">toMediaType</span><span class="p">())</span>
+
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">request</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Request</span><span class="p">.</span><span class="na">Builder</span><span class="p">()</span>
+<span class="w">        </span><span class="p">.</span><span class="na">url</span><span class="p">(</span><span class="s">&quot;http://127.0.0.1:5000/decrypt&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="na">post</span><span class="p">(</span><span class="n">requestBody</span><span class="p">)</span>
+<span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">()</span>
+
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="p">.</span><span class="na">newCall</span><span class="p">(</span><span class="n">request</span><span class="p">).</span><span class="na">execute</span><span class="p">()</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">response</span><span class="p">.</span><span class="na">body</span><span class="o">?.</span><span class="na">string</span><span class="p">().</span><span class="na">toString</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>能够发现，其实脚本的主体结构并没有太大的变化，但是在核心的<code>decrypt</code>函数上，使用了<code>OkHttp</code>发送请求，并接受返回的数据，即是将<code>jadx</code>作为了客户端。既然有客户端，那么也得有服务端，如下所示</p>
+<div class="highlight"><pre><span></span><code><span class="o">...</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="n">log_level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">message</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;send&#39;</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[*] </span><span class="si">{</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;payload&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/decrypt&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span><span class="c1">#data解密</span>
+<span class="k">def</span> <span class="nf">decrypt_class</span><span class="p">():</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+    <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+    <span class="n">method_sig</span> <span class="o">=</span> <span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;method&quot;</span><span class="p">)</span>
+    <span class="n">method_param</span> <span class="o">=</span> <span class="n">handle_params</span><span class="p">(</span><span class="n">json_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;param&quot;</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;method: $</span><span class="si">{</span><span class="n">method_sig</span><span class="si">}</span><span class="s2">; params: $</span><span class="si">{</span><span class="n">method_param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> 
+    <span class="n">handle_method</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">methods</span><span class="p">[</span><span class="n">method_sig</span><span class="p">]]</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">_process_string</span><span class="p">(</span><span class="n">handle_method</span><span class="p">(</span><span class="n">method_sig</span><span class="p">,</span> <span class="n">method_param</span><span class="p">))</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;application/json&#39;</span>
+    <span class="k">return</span> <span class="n">response</span>
+
+<span class="k">def</span> <span class="nf">_process_string</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">s</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span>
+    <span class="k">return</span> <span class="n">s</span>
+
+<span class="k">def</span> <span class="nf">handle_params</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">params</span>
+
+<span class="c1">#################### Method Handler ####################</span>
+
+<span class="k">def</span> <span class="nf">_handle_qz_b</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">method_param</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">_process_string</span><span class="p">(</span><span class="n">script</span><span class="o">.</span><span class="n">exports_sync</span><span class="o">.</span><span class="n">invokemethod01</span><span class="p">(</span><span class="n">method_param</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">method_param</span><span class="si">}</span><span class="s2"> =&gt; </span><span class="si">{</span><span class="n">res</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+<span class="k">def</span> <span class="nf">_handle_cg_b</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">method_param</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">_process_string</span><span class="p">(</span><span class="n">script</span><span class="o">.</span><span class="n">exports_sync</span><span class="o">.</span><span class="n">invokemethod02</span><span class="p">(</span><span class="n">method_param</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">method_param</span><span class="si">}</span><span class="s2"> =&gt; </span><span class="si">{</span><span class="n">res</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+<span class="c1">#################### Flask Server ####################</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">builder</span><span class="p">()</span>
+<span class="n">methods</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">methods_map</span>
+
+<span class="n">device</span> <span class="o">=</span> <span class="n">frida</span><span class="o">.</span><span class="n">get_device_manager</span><span class="p">()</span><span class="o">.</span><span class="n">add_remote_device</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">remote_device</span><span class="p">)</span>
+<span class="k">if</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">spawn</span><span class="p">):</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">device</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">package_name</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">device</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span> <span class="s2">&quot;scripts&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">frida_script_name</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">jsCode</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="n">script</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">create_script</span><span class="p">(</span><span class="n">jsCode</span><span class="p">)</span>
+<span class="n">script</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">,</span><span class="n">message</span><span class="p">)</span>
+<span class="n">script</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<p>由于我们的目标是如何完成RPC函数，故不会对上面的代码进行更深入的说明，但是有几个点需要注意，这也是本人踩过的坑</p>
+<ul>
+<li>服务端处理完字符串数据后，一定要对字符串内的空格和回车做处理，否则会导致替换回去的数据出现显示问题</li>
+<li>在<code>Frida</code> 15及以上的版本，attach操作需要应用的名称，由于笔者本人使用的是<strong>Frida 16.0.19</strong>，所以在这里也做了特殊的处理</li>
+<li>我们可以在<code>Config</code>中提前设置好方法签名和函数的对应，例如<code>"kotlinx.android.extensionss.qz.b(Ljava/lang/String;)Ljava/lang/String;": "_handle_qz_b"</code>，这样就能根据不同的签名走不同的主动调用</li>
+</ul>
+<p>开启Frida，启动PC端server，执行脚本，能够看到大部分内容已经被解密了</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617051105890.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617051105890" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617051105890.png" /></a></p>
+<p>但是此时还需要注意一下<code>CornerTreatment.b("237A88EB")</code>，这看上去也是一个解密，跟进去看看</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617051304429.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617051304429" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617051304429.png" /></a></p>
+<p>果不其然，这里也是一层加密，事实上，这个Demo中也存在着很多这种嵌套解密</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617051555349.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617051555349" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617051555349.png" /></a></p>
+<p>虽然多了一层解密，但是我们依然可以如法炮制，再上一个解密的插件，这样问题就解决了，双层嵌套解密也能被干掉</p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617053212792.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617053212792" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617053212792.png" /></a></p>
+<p><a class="glightbox" href="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617053412948.png" data-type="image" data-width="100%" data-height="auto" data-desc-position="bottom"><img alt="image-20230617053412948" src="../images/Android%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8A%A0%E5%AF%86%E5%92%8C%E5%8F%8D%E6%B7%B7%E6%B7%86/image-20230617053412948.png" /></a></p>
+<p>当字符串的混淆消失之后，我们也能够更好地分析应用的行为，也可以将patch后的项目导出用于静态检测。</p>
+<h2 id="_2">总结<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>上面的案例中我们只使用了Frida进行了字符串的还原，实际上，也存在App将字符串解密的函数放在Native中，这时候就需要更加稳定的unidbg去解了，笔者在这里只是引出一个思路，关于unidbg的使用就不再赘述了。总而言之，只要能通过这种<code>jadx</code>脚本的方式继续patch，那么字符串加密的问题就不再会成为逆向分析的时间成本，笔者也将相关的代码和最新版编译的<code>jadx</code>一并放出，可供参考。</p>
+<p><a href="https://github.com/jygzyc/apkDeobfuscation">jygzyc/apkDeobfuscation (github.com)</a></p>
+<h2 id="_3">参考资料<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://github.com/MegatronKing/StringFog">MegatronKing/StringFog: 一款自动对字节码中的字符串进行加密Android插件工具 (github.com)</a></li>
+<li><a href="https://github.com/frida/frida">frida/frida: Clone this repo to build Frida (github.com)</a></li>
+<li><a href="https://github.com/skylot/jadx">skylot/jadx: Dex to Java decompiler (github.com)</a></li>
+</ul>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../%E5%86%85%E6%A0%B8%E7%BC%96%E8%AF%91%E4%B8%8EKernelSU%E9%9B%86%E6%88%90/" class="md-footer__link md-footer__link--prev" aria-label="Previous: 内核编译与KernelSU集成" rel="prev">
+            <div class="md-footer__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                内核编译与KernelSU集成
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../Tools/Frida/Frida%E7%BC%96%E8%AF%91%E4%B8%8Epatch/" class="md-footer__link md-footer__link--next" aria-label="Next: Frida编译与patch" rel="next">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Frida编译与patch
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit", "content.action.view", "content.code.copy", "navigation.footer", "navigation.tracking", "navigation.top", "toc.follow"], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
+      
+    
+  <script>document$.subscribe(() => {const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});})</script></body>
+</html>
